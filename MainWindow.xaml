@@ -1,0 +1,485 @@
+﻿<Window x:Class="CalculatorApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:con="clr-namespace:CalculatorApp.Converter"
+       xmlns:vm="clr-namespace:CalculatorApp.ViewModel"
+     xmlns:model="clr-namespace:CalculatorApp.Model"
+        xmlns:local="clr-namespace:CalculatorApp"
+       mc:Ignorable="d"
+     
+        Title="Responsive Calculator"
+        Width="350" Height="570"
+        WindowStyle="None"
+        AllowsTransparency="true"
+        Background="Transparent"
+          SizeChanged="Window_SizeChanged"
+        ResizeMode="CanResizeWithGrip"     
+        PreviewKeyDown="Window_PreviewKeyDown"
+        Focusable="True"  
+        Loaded="Window_Loaded"
+        >
+
+    <Window.Resources>
+        <DropShadowEffect x:Key="SidebarShadow" BlurRadius="10" ShadowDepth="2" Color="Black" Opacity="0.2" />
+
+        <con:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <con:InverseBooleanConverter x:Key="InverseToBoolConversion"/>
+
+        <Storyboard x:Key="SlideInMenu">
+            <DoubleAnimation Storyboard.TargetName="Sidebar"
+                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                             To="0" Duration="0:0:0.3"/>
+        </Storyboard>
+        <Storyboard x:Key="SlideOutMenu">
+            <DoubleAnimation Storyboard.TargetName="Sidebar"
+                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                             To="-200" Duration="0:0:0.3"/>
+        </Storyboard>
+
+        <Storyboard x:Key="SlideUpMemory">
+            <DoubleAnimation Storyboard.TargetName="MemoryTransform"
+                     Storyboard.TargetProperty="Y"
+                     To="0"
+                     Duration="0:0:0.3"/>
+        </Storyboard>
+        <Storyboard x:Key="SlideDownMemory">
+            <DoubleAnimation Storyboard.TargetName="MemoryTransform"
+                     Storyboard.TargetProperty="Y"
+                     To="300"
+                     Duration="0:0:0.3"/>
+        </Storyboard>
+
+
+        <DropShadowEffect x:Key="ShadowEffect" ShadowDepth="2" BlurRadius="10" Opacity="0.3"/>
+
+        <QuadraticEase x:Key="SlideEase" EasingMode="EaseOut"/>
+
+        <!-- Slide Up -->
+        <Storyboard x:Key="SlideInHistory">
+            <DoubleAnimation Storyboard.TargetName="HistoryPanelTransform"
+                         Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                         From="300" To="0"
+                         Duration="0:0:0.3"
+                         EasingFunction="{StaticResource SlideEase}"/>
+        </Storyboard>
+
+        <!-- Slide Down -->
+        <Storyboard x:Key="SlideOutHistory">
+            <DoubleAnimation Storyboard.TargetName="HistoryPanelTransform"
+                          Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                         From="0" To="300"
+                         Duration="0:0:0.3"
+                         EasingFunction="{StaticResource SlideEase}"/>
+        </Storyboard>
+       
+    </Window.Resources>
+
+
+    <!--Grid x:Name="MainGrid" Background="#FF1E1E1E">
+        <Grid.Clip>
+          
+            <RectangleGeometry x:Name="MainClip" RadiusX="5" RadiusY="5" Rect="0,0,350,550"/>
+        </Grid.Clip-->
+    <Border BorderBrush="Transparent" BorderThickness="0" CornerRadius="5" Background="#FF1E1E1E"  x:Name="MainContent" Opacity="1">
+        <Grid >
+       
+                <!--Main contnet-->
+                <Grid x:Name="Sidebar" Width="200" 
+      Visibility="Collapsed"
+      HorizontalAlignment="Left"
+      Panel.ZIndex="100"
+                      
+      Margin="0">
+                <Grid.Background>
+                    <SolidColorBrush Color="black" Opacity="0.6"/>
+                    
+                    <!-- ~67% opaque black -->
+                </Grid.Background>
+
+                <Grid.RenderTransform>
+                        <TranslateTransform x:Name="SidebarTransform" X="-200" />
+                    </Grid.RenderTransform>
+
+                    <DockPanel LastChildFill="True" >
+
+                        <!-- Bottom About Button -->
+                        <Button DockPanel.Dock="Bottom" Click="AboutButton_Click"  Style="{StaticResource menuButtons}" >
+                            <StackPanel Orientation="Horizontal" Margin="8,5">
+                                <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" Foreground="#3CCBFF" FontSize="16" Margin="0,0,8,0"/>
+                                <TextBlock Text="About" VerticalAlignment="Center" FontSize="18" Foreground="#3CCBFF"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Top Content -->
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <TextBlock Text="Calculator" FontSize="14" Foreground="#3CCBFF" Margin="4,10,0,0"/>
+                                <Button Content="&#xE947;" Margin="80,0,0,0" FontSize="10"
+                        Style="{StaticResource WindowButtonStyle}" Click="SidebarOverlayClose_Click"
+                        ToolTip="Close Sidebar" />
+                            </StackPanel>
+
+                            <Button x:Name="OpenNavigation" Click="MenuButton_Click" Style="{StaticResource WindowButtonStyle}"
+                    FontFamily="Segoe MDL2 Assets" Content="&#xE700;" Width="40" Height="40"
+                    Foreground="#3CCBFF" FontSize="24" Padding="5" HorizontalAlignment="Left" />
+
+                            <Button Style="{StaticResource menuButtons}" HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE8EF;" Foreground="#3CCBFF" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Standard" FontSize="18" Foreground="#3CCBFF"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource menuButtons}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE7C1;" Foreground="#3CCBFF" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Scientific" FontSize="18" Foreground="#3CCBFF"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource menuButtons}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE943;" Foreground="#3CCBFF" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Programmer" FontSize="18" Foreground="#3CCBFF"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource menuButtons}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xF1CA;" Foreground="#3CCBFF" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Graphing" FontSize="18" Foreground="#3CCBFF"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Background="Transparent" Style="{StaticResource menuButtons}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE713;" Foreground="#3CCBFF" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Settings" FontSize="18" Foreground="#3CCBFF"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </DockPanel>
+                </Grid>
+           
+
+
+
+            <StackPanel>
+                <!--Title bar -->
+
+
+
+
+
+                <Grid Height="40"  VerticalAlignment="Top" MouseDown="TitleBar_MouseDown">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--Image Source="/Capture.PNG"  Margin="18,5,170,5" Width="20" /-->
+                    <TextBlock  Text="Calculator" VerticalAlignment="Center" Margin="4,0,0,0"  Foreground="#3CCBFF"  FontSize="14"/>
+
+                    <StackPanel  Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0" >
+                        <Button Content="&#xE921;" Style="{StaticResource WindowButtonStyle}"  Click="Minimize_Click" />
+                        <Button Content="&#xE923;"  Style="{StaticResource WindowButtonStyle}" Click="Maximize_Click"  BorderThickness="0" />
+                        <Button Content="&#xE947;" Style="{StaticResource WindowButtonStyle}"  Click="Close_Click" />
+                    </StackPanel>
+
+                </Grid>
+
+
+                <Grid >
+
+
+                    <StackPanel  Orientation="Horizontal" VerticalAlignment="Center">
+                        <Grid >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*" />
+                                <!-- Left (Nav button) -->
+                                <ColumnDefinition Width="*" />
+                                <!-- Center ("Standard" text) -->
+                                <ColumnDefinition Width="*" />
+                                <!-- Right (History icon) -->
+                            </Grid.ColumnDefinitions>
+
+
+                            <!-- Open Navigation Button -->
+                            <Button Grid.Column="0"  Click="MenuButton_Click"   Style="{StaticResource WindowButtonStyle}"  FontFamily="Segoe MDL2 Assets"    Content="&#xE700;" Width="40" Height="40"  Foreground="#3CCBFF" FontSize="24"  Padding="5" HorizontalAlignment="Left"   >
+                                <Button.ToolTip>
+                                    <ToolTip Style="{StaticResource myToolTip}">Open Navigation</ToolTip>
+                                </Button.ToolTip>
+                            </Button >
+
+
+                            <!-- "Standard" Text -->
+                            <TextBlock Grid.Column="1" x:Name="StandardLabel" Visibility="Visible" Text="Standard" FontSize="20" Foreground="#3CCBFF"  VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+
+                            <!-- History Button -->
+                            <Button Padding="10" Grid.Column="2" BorderThickness="0" Content="&#xe81c;" Margin="177,0,0,0" Command="{Binding HistoryButtonCommand}"  HorizontalAlignment="Right"  Style="{StaticResource WindowButtonStyle}"/>
+
+                        </Grid>
+
+
+                    </StackPanel>
+
+
+                </Grid>
+
+                <StackPanel  HorizontalAlignment="Right">
+                    <TextBlock Height="40" x:Name="MyTextBox1" Padding="5" Text="{Binding InputExpression, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Foreground="#3CCBFF" Background="#FF1E1E1E"  HorizontalAlignment="Right" TextAlignment="Center"  Margin="0,0,20,0"     />
+
+                    <!-- Result Display -->
+                    <TextBlock Height="50" x:Name="MyTextBox2" Padding="5" Margin="0,0,20,0" TextAlignment="Center"  Text="{Binding Result,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="30" FontFamily="Microsoft PhagsPa"  Foreground="#3CCBFF" Background="#FF1E1E1E" HorizontalAlignment="Right" Grid.Row="3" Focusable="False"     />
+
+                </StackPanel>
+                <!--Memory-->
+                <StackPanel  Grid.Row="4" Orientation="Horizontal">
+                    <Button Content="MC" Command="{Binding ButtonClickCommand}" CommandParameter="MC" IsEnabled="{Binding IsMemoryAvailable}"   Style="{StaticResource MemoryButton}"  >
+                        <Button.ToolTip >
+                            <ToolTip Style="{StaticResource myToolTip}">
+                                Memory Clear
+                            </ToolTip>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Content="MR" Command="{Binding ButtonClickCommand}" CommandParameter="MR" IsEnabled="{Binding IsMemoryAvailable}"   Style="{StaticResource MemoryButton}">
+                        <Button.ToolTip >
+                            <ToolTip Style="{StaticResource myToolTip}">
+                                Memory Restore
+                            </ToolTip>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Content="M+" Command="{Binding ButtonClickCommand}" CommandParameter="M+"  Style="{StaticResource MemoryButton}">
+                        <Button.ToolTip >
+                            <ToolTip Style="{StaticResource myToolTip}">
+                                Memory add
+                            </ToolTip>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Content="M-" Command="{Binding ButtonClickCommand}" CommandParameter="M-"  Style="{StaticResource MemoryButton}">
+                        <Button.ToolTip >
+                            <ToolTip Style="{StaticResource myToolTip}">
+                                Memory subtract
+                            </ToolTip>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Content="MS" Command="{Binding ButtonClickCommand}" CommandParameter="MS"  Style="{StaticResource MemoryButton}">
+                        <Button.ToolTip >
+                            <ToolTip Style="{StaticResource myToolTip}">
+                                Memory save
+                            </ToolTip>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Content="M" Command="{Binding ToggleMemoryPanelCommand}" CommandParameter="M"  IsEnabled="{Binding IsMemoryAvailable}" Style="{StaticResource MemoryButton}">
+                        <Button.ToolTip >
+                            <ToolTip Style="{StaticResource myToolTip}">
+                                Memory
+                            </ToolTip>
+                        </Button.ToolTip>
+                    </Button>
+                </StackPanel>
+
+                <Grid   >
+
+                    <Grid x:Name="MyGrid"  Margin="0" >
+
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+
+                        <Button Grid.Row="0" Grid.Column="0" Content="%"  CommandParameter="%" Command="{Binding ButtonClickCommand}"  Style="{StaticResource OperationButton}"/>
+                        <Button Grid.Row="0" Grid.Column="1" Content="CE" CommandParameter="CE" Command="{Binding ButtonClickCommand}"  Style="{StaticResource OperationButton}"/>
+                        <Button Grid.Row="0" Grid.Column="2" Content="C"  CommandParameter="C" Command="{Binding ButtonClickCommand}"  Style="{StaticResource OperationButton}"/>
+                        <Button Grid.Row="0" Grid.Column="3"    CommandParameter="⌫"  Command="{Binding ButtonClickCommand}" Style="{StaticResource OperationButton}" >
+                            <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="24"  Text="&#xe750;" />
+                        </Button>
+
+                        <Button Grid.Row="1" Grid.Column="0" Content="1/x"  CommandParameter="1/x" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="1" Grid.Column="1" Content="x²"  CommandParameter="sqr" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="1" Grid.Column="2"  Content="√x"  CommandParameter="sqrt" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="1" Grid.Column="3" Content="÷"  CommandParameter="÷" Command="{Binding ButtonClickCommand}" Style="{StaticResource OperationButton}"/>
+
+                        <Button Grid.Row="2" Grid.Column="0" Content="7" CommandParameter="7" Command="{Binding ButtonClickCommand}"  Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="2" Grid.Column="1" Content="8" CommandParameter="8" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="2" Grid.Column="2" Content="9" CommandParameter="9" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="2" Grid.Column="3" Content="×"  CommandParameter="×" Command="{Binding ButtonClickCommand}" Style="{StaticResource OperationButton}"/>
+
+                        <Button Grid.Row="3" Grid.Column="0" Content="4" CommandParameter="4" Command="{Binding ButtonClickCommand}"  Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="3" Grid.Column="1" Content="5" CommandParameter="5" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="3" Grid.Column="2" Content="6" CommandParameter="6" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="3" Grid.Column="3" Content="-"  CommandParameter="-" Command="{Binding ButtonClickCommand}" Style="{StaticResource OperationButton}"/>
+
+                        <Button Grid.Row="4" Grid.Column="0" Content="1" CommandParameter="1" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="4" Grid.Column="1" Content="2" CommandParameter="2" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="4" Grid.Column="2" Content="3" CommandParameter="3" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="4" Grid.Column="3" Content="+"  CommandParameter="+" Command="{Binding ButtonClickCommand}" Style="{StaticResource OperationButton}"/>
+
+                        <Button Grid.Row="5" Grid.Column="0" Content="+/-"  CommandParameter="+/-" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="5" Grid.Column="1" Content="0" CommandParameter="0" Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="5" Grid.Column="2" Content="."  CommandParameter="." Command="{Binding ButtonClickCommand}" Style="{StaticResource myButton}"/>
+                        <Button Grid.Row="5" Grid.Column="3" Content="=" Command="{Binding ButtonClickCommand}" CommandParameter="="  Style="{StaticResource EqualButton}" />
+
+
+                    </Grid>
+
+<!-- Memory -->
+                    <Border Name="MemoryPanel" BorderBrush="#3CCBFF" BorderThickness="1" CornerRadius="5" Margin="10" Padding="5"
+        Background="#1A1A1A" Visibility="{Binding IsMemoryPanelVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ScrollViewer MaxHeight="600" VerticalScrollBarVisibility="Auto">
+
+                            <ScrollViewer.Resources>
+                                <!-- ScrollBar Style -->
+                                <Style TargetType="ScrollBar">
+                                    <Setter Property="Background" Value="black"/>
+                                    <Setter Property="Width" Value="3"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ScrollBar">
+                                                <Grid Background="{TemplateBinding Background}">
+                                                    <Track>
+                                                        <Track.Thumb>
+                                                            <Thumb Background="#FF7F7F7F" Width="3" />
+                                                        </Track.Thumb>
+                                                    </Track>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+
+                                <!-- Thumb Hover Effect -->
+                                <Style TargetType="Thumb">
+
+                                    <Setter Property="Height" Value="50"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="4"/>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#FF555555"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ScrollViewer.Resources>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0">
+                                    <TextBlock Text="Memory" Foreground="#3CCBFF" FontSize="16" FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <TextBlock Text="There's nothing in memory " Foreground="#C33EFF" FontStyle="Italic" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Visibility="{Binding IsMemoryEmpty, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                                    <ItemsControl ItemsSource="{Binding MemoryList}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave" x:Name="memBut"  >
+
+                                                    <Grid HorizontalAlignment="Right" VerticalAlignment="Center"  >
+                                                        <StackPanel Orientation="Vertical">
+                                                            <TextBlock  FontSize="14" HorizontalAlignment="Right" Text="{Binding}"  Foreground="#C33EFF" Margin="10"/>
+
+
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,2">
+                                                                <Button Content="MC"  Command="{Binding DataContext.DeleteMemoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"  CommandParameter="{Binding}" Visibility="Collapsed"  Style="{StaticResource MemoryButton}" BorderBrush="LightGray" BorderThickness="1"  x:Name="DeleteButton"  >
+                                                                    <Button.ToolTip >
+                                                                        <ToolTip Style="{StaticResource myToolTip}">
+                                                                            Memory Clear
+                                                                        </ToolTip>
+                                                                    </Button.ToolTip>
+                                                                </Button>
+                                                                <Button Content="M+" Command="{Binding DataContext.ButtonClickCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="M+"  Style="{StaticResource MemoryButton}" Visibility="Collapsed" x:Name="PlusButton">
+                                                                    <Button.ToolTip >
+                                                                        <ToolTip Style="{StaticResource myToolTip}">
+                                                                            Memory add
+                                                                        </ToolTip>
+                                                                    </Button.ToolTip>
+                                                                </Button>
+                                                                <Button Content="M-" Command="{Binding DataContext.ButtonClickCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="M-"  Style="{StaticResource MemoryButton}" x:Name="MinusButton" Visibility="Collapsed">
+                                                                    <Button.ToolTip >
+                                                                        <ToolTip Style="{StaticResource myToolTip}">
+                                                                            Memory subtract
+                                                                        </ToolTip>
+                                                                    </Button.ToolTip>
+                                                                </Button>
+
+
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                </StackPanel>
+
+                                <Button Grid.Row="1" FontFamily="Segoe MDL2 Assets" FontSize="16" Content="&#xE74D;" Command="{Binding ClearMemoryCommand}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,5,0,0" Padding="6,2" Background="Transparent" Foreground="#3CCBFF" BorderThickness="0" Width="40" Height="40" Style="{StaticResource WindowButtonStyle}" />
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+<!--History-->
+
+
+                    <Border Panel.ZIndex="0" Name="HistoryPanel" BorderBrush="#3CCBFF" BorderThickness="1" CornerRadius="5" Margin="10" Padding="5"
+Background="#1A1A1A" Visibility="{Binding IsHistoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0">
+                                <TextBlock Text="History" Foreground="#3CCBFF" FontSize="16" FontWeight="Bold" Margin="0,0,0,5"/>
+                                <TextBlock Text="There's nothing in history" Foreground="#C33EFF" FontStyle="Italic" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsHistoryEmpty, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                                <ItemsControl ItemsSource="{Binding HistoryItems}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="10" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding Expression}"  Foreground="#C33EFF" FontSize="14"  HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding Result}"  Foreground="#C33EFF" FontWeight="Bold"  FontSize="20" HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+
+                            <Button Grid.Row="1"  FontFamily="Segoe MDL2 Assets" FontSize="16" Content="&#xE74D;" Command="{Binding ClearHistoryCommand}" HorizontalAlignment="Right"        VerticalAlignment="Bottom"  Margin="0,5,0,0"   Padding="6,2"  Background="Transparent"  Foreground="#3CCBFF"   Width="40" Height="40"  BorderThickness="0" Style="{StaticResource WindowButtonStyle}" />
+
+                        </Grid>
+                    </Border>
+
+                </Grid>
+
+            </StackPanel>
+        </Grid>
+    </Border>
+
+</Window>
+
