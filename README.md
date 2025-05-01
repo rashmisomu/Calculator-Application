@@ -28,13 +28,16 @@ A simple yet functional calculator application built using **Windows Presentatio
 
 ## 🚀 Features
 
-- Perform basic arithmetic operations: ➕ ➖ ✖️ ➗  
-- Well-structured MVVM architecture  
-- Custom value converters  
-- Resource dictionary for styles  
-- About window  
-- Responsive and clean UI  
-
+- User-friendly interface with responsive design. 
+- Support for operations such as addition, subtraction, multiplication, division, sqr ,sqrt , percent . 
+- Support Keyboard Input Support-Enables seamless operation through both mouse and 
+  keyboard for an improved user experience. 
+- Includes Memory Feature-Includes the ability to store, recall, and clear memory values, 
+  mimicking real calculator functionality. 
+- Includes History Tracking-Maintains a log of recent calculations, allowing users to 
+  review and reuse past entries. 
+- Input validation to handle erroneous or unexpected user inputs gracefully.
+- logs input and output to log file
 ---
 
 ## 🛠️ Getting Started — Create Your Own WPF MVVM Project
