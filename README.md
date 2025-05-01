@@ -110,11 +110,9 @@ Then reference it in `App.xaml`:
 
 ### Main Calculator UI
 
-![Calculator UI](./myCalci.PNG)
+![Calculator UI](./CalculatorApp.PNG)
 
-### About/Overview Window
 
-![Overview](./Capture.PNG)
 
 ---
 
